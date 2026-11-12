@@ -1,0 +1,15 @@
+import { Session } from '../src/session.js';
+process.env.UXA_HEADLESS = '1';
+const s = new Session({ url: process.argv[2], name: 'Real site smoke test', useChrome: false });
+await s.start();
+const p = s.context.pages()[0];
+await p.waitForTimeout(3000);
+await p.mouse.wheel(0, 1500); await p.waitForTimeout(800);
+const link = p.locator('main a[href^="/"]:visible, #content a[href^="/"]:visible').first();
+await link.click().catch(e=>console.log('click fail', e.message.split('\n')[0]));
+await p.waitForTimeout(3500);
+const r = await s.stop();
+const c={};s.events.forEach(e=>c[e.type]=(c[e.type]||0)+1);console.log(c, s.events.filter(e=>e.type==="pageview").map(e=>e.page));
+console.log(s.status, s.error||'', r.summary, Object.keys(s.shots));
+console.log(r.categories.map(c=>`${c.name}: ${c.score}`).join(' | '));
+console.log(r.findings.slice(0,10).map(f=>`[${f.severity}] ${f.title}`).join('\n'));

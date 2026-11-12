@@ -1,0 +1,22 @@
+{
+  "name": "ux-analytics",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "scan": "node src/cli.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "axe-core": "^4.14.0",
+    "playwright": "^1.65.0"
+  },
+  "bin": {
+    "uxlens": "src/cli.js"
+  }
+}
