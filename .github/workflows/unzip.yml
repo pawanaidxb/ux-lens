@@ -1,0 +1,51 @@
+name: Unzip site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/unzip.yml'
+      - '*.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unzip into repo root
+        shell: bash
+        run: |
+          shopt -s nullglob dotglob
+          zips=( *.zip )
+          if [ ${#zips[@]} -eq 0 ]; then
+            echo "No zip found. Nothing to do."
+            exit 0
+          fi
+          for z in "${zips[@]}"; do
+            rm -rf _unzipped
+            unzip -o "$z" -d _unzipped
+            rm -rf _unzipped/__MACOSX
+            find _unzipped -name '.DS_Store' -delete
+            items=( _unzipped/* )
+            if [ ! -f _unzipped/index.html ] && [ ${#items[@]} -eq 1 ] && [ -d "${items[0]}" ]; then
+              inner="${items[0]}"
+              mv "$inner"/* _unzipped/
+              rmdir "$inner"
+            fi
+            cp -r _unzipped/* .
+            rm -rf _unzipped "$z"
+          done
+          touch .nojekyll
+
+      - name: Commit unzipped files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Unzip site files" || echo "Nothing to commit"
+          git push
